@@ -33,6 +33,11 @@ func (u *Implement) List(limit, offset int) ([]*entity.Ingredient, int, error) {
 	return ingredients, int(count), err
 }
 
+func (u *Implement) GetOrCreate(name string) (*entity.Ingredient, error) {
+	var ingredient *entity.Ingredient
+	return ingredient, u.db.FirstOrCreate(&ingredient, "name = ?", name).Error
+}
+
 func (u *Implement) Create(recipe *entity.Ingredient) error {
 	return u.db.Create(recipe).Error
 }

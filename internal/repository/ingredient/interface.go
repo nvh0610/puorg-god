@@ -8,4 +8,5 @@ type Repository interface {
 	Update(ingredient *entity.Ingredient) error
 	Delete(id int) error
 	List(limit, offset int) ([]*entity.Ingredient, int, error)
+	GetOrCreate(name string) (*entity.Ingredient, error)
 }

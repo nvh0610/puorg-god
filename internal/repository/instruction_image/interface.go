@@ -8,4 +8,5 @@ type Repository interface {
 	Update(instructionImage *entity.InstructionImage) error
 	Delete(id int) error
 	List(limit, offset int) ([]*entity.InstructionImage, int, error)
+	CreateBatch(recipes []*entity.InstructionImage) error
 }

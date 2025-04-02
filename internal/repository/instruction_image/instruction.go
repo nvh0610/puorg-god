@@ -45,3 +45,7 @@ func (u *Implement) Update(recipe *entity.InstructionImage) error {
 func (u *Implement) Delete(id int) error {
 	return u.db.Delete(&entity.InstructionImage{Id: id}).Error
 }
+
+func (u *Implement) CreateBatch(recipes []*entity.InstructionImage) error {
+	return u.db.Create(recipes).Error
+}
