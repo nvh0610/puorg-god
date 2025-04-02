@@ -12,10 +12,10 @@ type SendOtpEmail struct {
 }
 
 func NewSendOtpEmail() *SendOtpEmail {
-	email := config.StringEnv("SENDER_EMAIL")
-	apiKey := config.StringEnv("API_KEY_EMAIL")
-	host := config.StringEnv("SMTP_HOST")
-	port := config.IntEnv("SMTP_PORT")
+	email := config.StringEnv("EMAIL_SENDER")
+	apiKey := config.StringEnv("EMAIL_API_KEY")
+	host := config.StringEnv("EMAIL_HOST")
+	port := config.IntEnv("EMAIL_PORT")
 	return &SendOtpEmail{
 		dialer: gomail.NewDialer(host, port, email, apiKey),
 		Email:  email,

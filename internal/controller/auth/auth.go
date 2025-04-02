@@ -133,8 +133,8 @@ func (a *AuthController) ForgetPassword(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	go a.sendEmail.SendOtp(user.Username, randomOtp)
-	resp.Return(w, http.StatusOK, customStatus.SUCCESS, nil)
+	go a.sendEmail.SendOtp(user.Email, randomOtp)
+	resp.Return(w, http.StatusOK, customStatus.SUCCESS, "OTP has been sent to your email")
 }
 
 func (a *AuthController) VerifyOtp(w http.ResponseWriter, r *http.Request) {
