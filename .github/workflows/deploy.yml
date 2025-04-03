@@ -82,5 +82,5 @@ jobs:
               -e REDIS_USERNAME='${{ secrets.REDIS_USERNAME }}' \
               -e REDIS_DB='${{ secrets.REDIS_DB }}' \
               -e REDIS_CONTAINER_NAME='${{ secrets.REDIS_CONTAINER_NAME }}' \
-              -p 8000:8000 \
+              -p 8080:8080 \
               ${DOCKER_IMAGE}
