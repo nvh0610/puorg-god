@@ -2,13 +2,18 @@ package recipe
 
 import (
 	"errors"
+	"github.com/go-chi/chi/v5"
 	customStatus "god/internal/common/error"
 	"god/internal/entity"
 	"god/internal/repository"
 	"god/internal/router/payload/request"
+	"god/internal/router/payload/response"
+	"god/pkg/helper"
 	"god/pkg/resp"
 	"god/pkg/utils"
+	"gorm.io/gorm"
 	"net/http"
+	"strconv"
 )
 
 type RecipeController struct {
@@ -28,21 +33,21 @@ func (u *RecipeController) CreateRecipe(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	err := u.repo.DoInTx(func(repo repository.Registry) error {
+	err := u.repo.DoInTx(func(txRepo repository.Registry) error {
 		recipeEntity := ToModelCreateEntity(req)
-		err := repo.Recipe().Create(recipeEntity)
+		err := txRepo.Recipe().Create(recipeEntity)
 		if err != nil {
-			return errors.New("failed to create recipe")
+			return err
 		}
 
-		err = u.createRecipeIngredient(req.Ingredients, recipeEntity.Id)
+		err = u.createRecipeIngredient(req.Ingredients, recipeEntity.Id, txRepo)
 		if err != nil {
-			return errors.New("failed to create recipe ingredient")
+			return err
 		}
 
-		err = u.createInstruction(req.Instructions, recipeEntity.Id)
+		err = u.createInstruction(req.Instructions, recipeEntity.Id, txRepo)
 		if err != nil {
-			return errors.New("failed to create instruction")
+			return err
 		}
 
 		return err
@@ -56,11 +61,14 @@ func (u *RecipeController) CreateRecipe(w http.ResponseWriter, r *http.Request) 
 	resp.Return(w, http.StatusOK, customStatus.SUCCESS, nil)
 }
 
-func (u *RecipeController) createRecipeIngredient(ingredientRequest []request.CreateIngredientRequest, recipeId int) error {
+func (u *RecipeController) createRecipeIngredient(ingredientRequest []request.CreateIngredientRequest, recipeId int, txRepo repository.Registry) error {
 	var ingredients []*entity.RecipeIngredient
 	var err error
 	for _, i := range ingredientRequest {
-		ingredient, _ := u.repo.Ingredient().GetOrCreate(i.Name)
+		ingredient, err := txRepo.Ingredient().GetOrCreate(ToModelIngredientEntity(&i))
+		if err != nil {
+			return err
+		}
 		var recipeIngredient *entity.RecipeIngredient
 		recipeIngredient = &entity.RecipeIngredient{
 			RecipeId:     recipeId,
@@ -72,7 +80,7 @@ func (u *RecipeController) createRecipeIngredient(ingredientRequest []request.Cr
 	}
 
 	if len(ingredients) > 0 {
-		err = u.repo.RecipeIngredient().CreateBatch(ingredients)
+		err = txRepo.RecipeIngredient().CreateBatch(ingredients)
 		if err != nil {
 			return errors.New("failed to create recipe ingredients")
 		}
@@ -81,7 +89,7 @@ func (u *RecipeController) createRecipeIngredient(ingredientRequest []request.Cr
 	return err
 }
 
-func (u *RecipeController) createInstruction(instructionRequest []request.CreateInstructionRequest, recipeId int) error {
+func (u *RecipeController) createInstruction(instructionRequest []request.CreateInstructionRequest, recipeId int, txRepo repository.Registry) error {
 	var err error
 	for _, i := range instructionRequest {
 		instruction := &entity.Instruction{
@@ -90,26 +98,103 @@ func (u *RecipeController) createInstruction(instructionRequest []request.Create
 			Content:  i.Content,
 		}
 
-		err = u.repo.Instruction().Create(instruction)
+		err = txRepo.Instruction().Create(instruction)
 		if err != nil {
 			return errors.New("failed to create instruction")
-		}
-
-		var instructionImages []*entity.InstructionImage
-		for _, image := range i.Images {
-			instructionImages = append(instructionImages, &entity.InstructionImage{
-				InstructionId: instruction.Id,
-				ImageUrl:      image,
-			})
-		}
-
-		if len(instructionImages) > 0 {
-			err = u.repo.InstructionImage().CreateBatch(instructionImages)
-			if err != nil {
-				return errors.New("failed to create instruction images")
-			}
 		}
 	}
 
 	return err
+}
+
+func (u *RecipeController) GetDistinctCuisines(w http.ResponseWriter, r *http.Request) {
+	page, limit := utils.SetDefaultPagination(r.URL.Query())
+	search := r.URL.Query().Get("cuisine")
+	offset := (page - 1) * limit
+	cuisines, total, err := u.repo.Recipe().GetDistinctCuisines(limit, offset, search)
+	if err != nil {
+		resp.Return(w, http.StatusInternalServerError, customStatus.INTERNAL_SERVER, err.Error())
+		return
+	}
+
+	data := response.GetDistinctCuisinesResponse{
+		Cuisines: cuisines,
+		PaginationResponse: response.PaginationResponse{
+			TotalPage: utils.CalculatorTotalPage(total, limit),
+			Limit:     limit,
+			Page:      page,
+		},
+	}
+
+	resp.Return(w, http.StatusOK, customStatus.SUCCESS, data)
+}
+
+func (u *RecipeController) GetListRecipe(w http.ResponseWriter, r *http.Request) {
+	page, limit := utils.SetDefaultPagination(r.URL.Query())
+	offset := (page - 1) * limit
+	searchCuisine := r.URL.Query().Get("cuisine")
+	searchTitle := r.URL.Query().Get("title")
+	searchIngredients := r.URL.Query().Get("ingredients")
+
+	var ingredients []string
+	if searchIngredients != "" {
+		ingredients = helper.ToArray(searchIngredients)
+	}
+
+	recipes, total, err := u.repo.Recipe().List(limit, offset, searchCuisine, searchTitle, ingredients)
+	if err != nil {
+		resp.Return(w, http.StatusInternalServerError, customStatus.INTERNAL_SERVER, err.Error())
+		return
+	}
+
+	data := response.ListRecipeResponse{
+		Recipes: response.ToRecipeResponse(recipes),
+		PaginationResponse: response.PaginationResponse{
+			TotalPage: utils.CalculatorTotalPage(total, limit),
+			Limit:     limit,
+			Page:      page,
+		},
+	}
+
+	resp.Return(w, http.StatusOK, customStatus.SUCCESS, data)
+}
+
+func (u *RecipeController) GetRecipeById(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	idInt, _ := strconv.Atoi(id)
+	recipe, err := u.repo.Recipe().GetDetailById(idInt)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			resp.Return(w, http.StatusNotFound, customStatus.RECIPE_NOT_FOUND, nil)
+			return
+		}
+
+		resp.Return(w, http.StatusInternalServerError, customStatus.INTERNAL_SERVER, err.Error())
+		return
+	}
+
+	resp.Return(w, http.StatusOK, customStatus.SUCCESS, response.ToDetailRecipeResponse(recipe))
+}
+
+func (u *RecipeController) DeleteRecipeById(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	idInt, _ := strconv.Atoi(id)
+	_, err := u.repo.Recipe().GetById(idInt)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			resp.Return(w, http.StatusNotFound, customStatus.RECIPE_NOT_FOUND, nil)
+			return
+		}
+
+		resp.Return(w, http.StatusInternalServerError, customStatus.INTERNAL_SERVER, err.Error())
+		return
+	}
+
+	err = u.repo.Recipe().Delete(idInt)
+	if err != nil {
+		resp.Return(w, http.StatusInternalServerError, customStatus.INTERNAL_SERVER, err.Error())
+		return
+	}
+
+	resp.Return(w, http.StatusOK, customStatus.SUCCESS, nil)
 }

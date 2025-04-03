@@ -75,7 +75,11 @@ func InitRouter() chi.Router {
 
 	r.Route("/api/recipes", func(r chi.Router) {
 		r.Use(mdw.JwtMiddleware)
-		r.Get("/", baseController.RecipeCtrl.CreateRecipe)
+		r.Post("/", baseController.RecipeCtrl.CreateRecipe)
+		r.Get("/distinct-cuisines", baseController.RecipeCtrl.GetDistinctCuisines)
+		r.Get("/", baseController.RecipeCtrl.GetListRecipe)
+		r.Get("/{id}", baseController.RecipeCtrl.GetRecipeById)
+		r.Delete("/{id}", baseController.RecipeCtrl.DeleteRecipeById)
 	})
 
 	return r

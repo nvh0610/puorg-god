@@ -21,9 +21,10 @@ func NewIngredientController(ingredientRepo repository.Registry) Controller {
 
 func (u *IngredientController) ListIngredient(w http.ResponseWriter, r *http.Request) {
 	page, limit := utils.SetDefaultPagination(r.URL.Query())
+	search := r.URL.Query().Get("name")
 	offset := (page - 1) * limit
 
-	ingredients, total, err := u.repo.Ingredient().List(limit, offset)
+	ingredients, total, err := u.repo.Ingredient().List(limit, offset, search)
 	if err != nil {
 		resp.Return(w, http.StatusInternalServerError, customStatus.INTERNAL_SERVER, err.Error())
 		return

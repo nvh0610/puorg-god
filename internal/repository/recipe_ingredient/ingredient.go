@@ -37,8 +37,8 @@ func (u *Implement) Create(recipe *entity.RecipeIngredient) error {
 	return u.db.Create(recipe).Error
 }
 
-func (u *Implement) CreateBatch(recipes []*entity.RecipeIngredient) error {
-	return u.db.Create(recipes).Error
+func (u *Implement) CreateBatch(recipeIngredient []*entity.RecipeIngredient) error {
+	return u.db.Create(recipeIngredient).Error
 }
 
 func (u *Implement) Update(recipe *entity.RecipeIngredient) error {

@@ -5,7 +5,6 @@ type CreateRecipeRequest struct {
 	Description  string                     `json:"description" validate:"required"`
 	ImageURL     string                     `json:"image_url"`
 	Cuisine      string                     `json:"cuisine"`
-	CreatedBy    int                        `json:"created_by" validate:"required"`
 	Ingredients  []CreateIngredientRequest  `json:"ingredients" validate:"required,dive"`
 	Instructions []CreateInstructionRequest `json:"instructions" validate:"required,dive"`
 }

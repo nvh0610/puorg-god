@@ -2,7 +2,6 @@ package response
 
 import (
 	"god/internal/entity"
-	"time"
 )
 
 type ListIngredientResponse struct {
@@ -11,18 +10,14 @@ type ListIngredientResponse struct {
 }
 
 type DetailIngredientResponse struct {
-	Id        int       `json:"id"`
-	Name      string    `json:"name"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	Id   int    `json:"id"`
+	Name string `json:"name"`
 }
 
 func ToDetailIngredientResponse(ingredient *entity.Ingredient) *DetailIngredientResponse {
 	return &DetailIngredientResponse{
-		Id:        ingredient.Id,
-		Name:      ingredient.Name,
-		CreatedAt: ingredient.CreatedAt,
-		UpdatedAt: ingredient.UpdatedAt,
+		Id:   ingredient.Id,
+		Name: ingredient.Name,
 	}
 }
 

@@ -13,11 +13,6 @@ var (
 	errInvalidToken = errors.New("token is invalid")
 )
 
-var (
-	secretKey = config.StringEnv("JWT_SECRET_KEY")
-	jwtExp    = time.Duration(config.IntEnv("JWT_EXP")) * time.Hour
-)
-
 type Payload struct {
 	UserID int    `json:"user_id"`
 	Role   string `json:"role"`
@@ -25,6 +20,8 @@ type Payload struct {
 }
 
 func GenerateToken(id int, role string) (string, error) {
+	secretKey := config.StringEnv("JWT_SECRET_KEY")
+	jwtExp := time.Duration(config.IntEnv("JWT_EXP")) * time.Hour
 	payload := &Payload{
 		UserID: id,
 		Role:   role,
@@ -34,11 +31,11 @@ func GenerateToken(id int, role string) (string, error) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, payload)
-
 	return token.SignedString([]byte(secretKey))
 }
 
 func Valid(tokenString string) (*Payload, error) {
+	secretKey := config.StringEnv("JWT_SECRET_KEY")
 	payload, err := Parse(KeyFunc(secretKey), tokenString)
 	if err != nil {
 		return nil, err

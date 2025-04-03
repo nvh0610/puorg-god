@@ -8,5 +8,5 @@ type Repository interface {
 	Update(recipeIngredient *entity.RecipeIngredient) error
 	Delete(id int) error
 	List(limit, offset int) ([]*entity.RecipeIngredient, int, error)
-	CreateBatch(recipes []*entity.RecipeIngredient) error
+	CreateBatch(recipeIngredient []*entity.RecipeIngredient) error
 }
