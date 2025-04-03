@@ -15,8 +15,16 @@ func ToModelCreateEntity(req *request.CreateRecipeRequest) *entity.Recipe {
 	}
 }
 
-func ToModelIngredientEntity(req *request.CreateIngredientRequest) *entity.Ingredient {
+func ToModelIngredientEntity(req *request.IngredientRequest) *entity.Ingredient {
 	return &entity.Ingredient{
 		Name: helper.ToLower(req.Name),
 	}
+}
+
+func ToModelUpdateEntity(req *request.UpdateRecipeRequest, recipe *entity.Recipe) *entity.Recipe {
+	recipe.Title = req.Title
+	recipe.Description = req.Description
+	recipe.ImageUrl = req.ImageURL
+	recipe.Cuisine = helper.ToLower(req.Cuisine)
+	return recipe
 }

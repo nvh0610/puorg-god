@@ -38,6 +38,14 @@ func (u *Implement) Create(recipe *entity.Instruction) error {
 	return u.db.Create(recipe).Error
 }
 
+func (u *Implement) UpdateBatch(recipes []*entity.Instruction) error {
+	return u.db.Save(recipes).Error
+}
+
+func (u *Implement) DeleteByRecipeId(id int) error {
+	return u.db.Where("recipe_id = ?", id).Delete(&entity.Instruction{}).Error
+}
+
 func (u *Implement) Update(recipe *entity.Instruction) error {
 	return u.db.Save(recipe).Error
 }

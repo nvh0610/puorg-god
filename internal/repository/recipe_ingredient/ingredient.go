@@ -48,3 +48,7 @@ func (u *Implement) Update(recipe *entity.RecipeIngredient) error {
 func (u *Implement) Delete(id int) error {
 	return u.db.Delete(&entity.RecipeIngredient{Id: id}).Error
 }
+
+func (u *Implement) DeleteByRecipeId(id int) error {
+	return u.db.Where("recipe_id = ?", id).Delete(&entity.RecipeIngredient{}).Error
+}

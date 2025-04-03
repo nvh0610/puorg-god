@@ -61,7 +61,65 @@ func (u *RecipeController) CreateRecipe(w http.ResponseWriter, r *http.Request) 
 	resp.Return(w, http.StatusOK, customStatus.SUCCESS, nil)
 }
 
-func (u *RecipeController) createRecipeIngredient(ingredientRequest []request.CreateIngredientRequest, recipeId int, txRepo repository.Registry) error {
+func (u *RecipeController) UpdateRecipe(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	idInt, _ := strconv.Atoi(id)
+	req := &request.UpdateRecipeRequest{}
+	if err := utils.BindAndValidate(r, req); err != nil {
+		resp.Return(w, http.StatusBadRequest, customStatus.INVALID_PARAMS, err.Error())
+		return
+	}
+
+	recipe, err := u.repo.Recipe().GetById(idInt)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			resp.Return(w, http.StatusNotFound, customStatus.RECIPE_NOT_FOUND, nil)
+			return
+		}
+
+		resp.Return(w, http.StatusInternalServerError, customStatus.INTERNAL_SERVER, err.Error())
+		return
+	}
+
+	err = u.repo.DoInTx(func(txRepo repository.Registry) error {
+		recipeEntity := ToModelUpdateEntity(req, recipe)
+		err = txRepo.Recipe().Update(recipeEntity)
+		if err != nil {
+			return err
+		}
+
+		err = txRepo.RecipeIngredient().DeleteByRecipeId(idInt)
+		if err != nil {
+			return err
+		}
+
+		err = u.createRecipeIngredient(req.Ingredients, idInt, txRepo)
+		if err != nil {
+			return err
+		}
+
+		err = txRepo.Instruction().DeleteByRecipeId(idInt)
+		if err != nil {
+			return err
+		}
+
+		err = u.createInstruction(req.Instructions, idInt, txRepo)
+		if err != nil {
+			return err
+		}
+
+		return err
+	})
+
+	if err != nil {
+		resp.Return(w, http.StatusInternalServerError, customStatus.INTERNAL_SERVER, err.Error())
+		return
+	}
+
+	resp.Return(w, http.StatusOK, customStatus.SUCCESS, nil)
+}
+
+func (u *RecipeController) createRecipeIngredient(ingredientRequest []request.IngredientRequest, recipeId int, txRepo repository.Registry) error {
 	var ingredients []*entity.RecipeIngredient
 	var err error
 	for _, i := range ingredientRequest {
@@ -89,7 +147,7 @@ func (u *RecipeController) createRecipeIngredient(ingredientRequest []request.Cr
 	return err
 }
 
-func (u *RecipeController) createInstruction(instructionRequest []request.CreateInstructionRequest, recipeId int, txRepo repository.Registry) error {
+func (u *RecipeController) createInstruction(instructionRequest []request.InstructionRequest, recipeId int, txRepo repository.Registry) error {
 	var err error
 	for _, i := range instructionRequest {
 		instruction := &entity.Instruction{

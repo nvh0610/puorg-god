@@ -8,4 +8,5 @@ type Controller interface {
 	GetListRecipe(w http.ResponseWriter, r *http.Request)
 	GetRecipeById(w http.ResponseWriter, r *http.Request)
 	DeleteRecipeById(w http.ResponseWriter, r *http.Request)
+	UpdateRecipe(w http.ResponseWriter, r *http.Request)
 }
