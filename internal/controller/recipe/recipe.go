@@ -160,6 +160,7 @@ func (u *RecipeController) createRecipeIngredient(ingredientRequest []*request.I
 
 func (u *RecipeController) createInstruction(instructionRequest []*request.InstructionRequest, recipeId int, txRepo repository.Registry) error {
 	var err error
+	var instructions []*entity.Instruction
 	for _, i := range instructionRequest {
 		instruction := &entity.Instruction{
 			RecipeId: recipeId,
@@ -167,9 +168,13 @@ func (u *RecipeController) createInstruction(instructionRequest []*request.Instr
 			Content:  i.Content,
 		}
 
-		err = txRepo.Instruction().Create(instruction)
+		instructions = append(instructions, instruction)
+	}
+
+	if len(instructions) > 0 {
+		err = txRepo.Instruction().CreateBatch(instructions)
 		if err != nil {
-			return errors.New("failed to create instruction")
+			return errors.New("failed to create instructions")
 		}
 	}
 
