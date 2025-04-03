@@ -13,6 +13,7 @@ import (
 	"god/pkg/utils"
 	"gorm.io/gorm"
 	"net/http"
+	"sort"
 	"strconv"
 )
 
@@ -29,6 +30,11 @@ func NewRecipeController(recipeRepo repository.Registry) Controller {
 func (u *RecipeController) CreateRecipe(w http.ResponseWriter, r *http.Request) {
 	req := &request.CreateRecipeRequest{}
 	if err := utils.BindAndValidate(r, req); err != nil {
+		resp.Return(w, http.StatusBadRequest, customStatus.INVALID_PARAMS, err.Error())
+		return
+	}
+
+	if err := u.ValidateInstructions(req.Instructions); err != nil {
 		resp.Return(w, http.StatusBadRequest, customStatus.INVALID_PARAMS, err.Error())
 		return
 	}
@@ -66,6 +72,11 @@ func (u *RecipeController) UpdateRecipe(w http.ResponseWriter, r *http.Request) 
 	idInt, _ := strconv.Atoi(id)
 	req := &request.UpdateRecipeRequest{}
 	if err := utils.BindAndValidate(r, req); err != nil {
+		resp.Return(w, http.StatusBadRequest, customStatus.INVALID_PARAMS, err.Error())
+		return
+	}
+
+	if err := u.ValidateInstructions(req.Instructions); err != nil {
 		resp.Return(w, http.StatusBadRequest, customStatus.INVALID_PARAMS, err.Error())
 		return
 	}
@@ -119,11 +130,11 @@ func (u *RecipeController) UpdateRecipe(w http.ResponseWriter, r *http.Request) 
 	resp.Return(w, http.StatusOK, customStatus.SUCCESS, nil)
 }
 
-func (u *RecipeController) createRecipeIngredient(ingredientRequest []request.IngredientRequest, recipeId int, txRepo repository.Registry) error {
+func (u *RecipeController) createRecipeIngredient(ingredientRequest []*request.IngredientRequest, recipeId int, txRepo repository.Registry) error {
 	var ingredients []*entity.RecipeIngredient
 	var err error
 	for _, i := range ingredientRequest {
-		ingredient, err := txRepo.Ingredient().GetOrCreate(ToModelIngredientEntity(&i))
+		ingredient, err := txRepo.Ingredient().GetOrCreate(ToModelIngredientEntity(i))
 		if err != nil {
 			return err
 		}
@@ -147,7 +158,7 @@ func (u *RecipeController) createRecipeIngredient(ingredientRequest []request.In
 	return err
 }
 
-func (u *RecipeController) createInstruction(instructionRequest []request.InstructionRequest, recipeId int, txRepo repository.Registry) error {
+func (u *RecipeController) createInstruction(instructionRequest []*request.InstructionRequest, recipeId int, txRepo repository.Registry) error {
 	var err error
 	for _, i := range instructionRequest {
 		instruction := &entity.Instruction{
@@ -255,4 +266,29 @@ func (u *RecipeController) DeleteRecipeById(w http.ResponseWriter, r *http.Reque
 	}
 
 	resp.Return(w, http.StatusOK, customStatus.SUCCESS, nil)
+}
+
+func (u *RecipeController) ValidateInstructions(req []*request.InstructionRequest) error {
+	stepMap := make(map[int]bool)
+
+	for _, instruction := range req {
+		if stepMap[instruction.Step] {
+			return errors.New("steps in instructions must be unique")
+		}
+		stepMap[instruction.Step] = true
+	}
+
+	var steps []int
+	for step := range stepMap {
+		steps = append(steps, step)
+	}
+	sort.Ints(steps)
+
+	for i := 1; i < len(steps); i++ {
+		if steps[i] != steps[i-1]+1 {
+			return errors.New("steps in instructions must be in ascending order without gaps")
+		}
+	}
+
+	return nil
 }

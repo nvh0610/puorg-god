@@ -43,8 +43,9 @@ func ToRecipeIngredientResponse(ingredients []*recipe.RecipeIngredientDTO) []*De
 	var res []*DetailIngredientResponse
 	for _, i := range ingredients {
 		res = append(res, &DetailIngredientResponse{
-			Id:   i.ID,
-			Name: i.Name,
+			Id:       i.ID,
+			Name:     i.Name,
+			Quantity: i.Quantity,
 		})
 	}
 	return res

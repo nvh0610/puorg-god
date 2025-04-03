@@ -80,7 +80,7 @@ func InitRouter() chi.Router {
 		r.Get("/", baseController.RecipeCtrl.GetListRecipe)
 		r.Get("/{id}", baseController.RecipeCtrl.GetRecipeById)
 		r.Delete("/{id}", baseController.RecipeCtrl.DeleteRecipeById)
-		r.Put("/", baseController.RecipeCtrl.UpdateRecipe)
+		r.Put("/{id}", baseController.RecipeCtrl.UpdateRecipe)
 	})
 
 	return r

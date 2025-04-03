@@ -31,8 +31,9 @@ type RecipeWithIngredients struct {
 }
 
 type RecipeIngredientDTO struct {
-	ID   int    `json:"id" gorm:"column:id"`
-	Name string `json:"name" gorm:"column:name"`
+	ID       int    `json:"id" gorm:"column:id"`
+	Name     string `json:"name" gorm:"column:name"`
+	Quantity string `json:"quantity" gorm:"column:quantity"`
 }
 
 func (u *Implement) List(limit, offset int, searchCuisine, searchTitle string, searchIngredients []string) ([]*RecipeWithIngredients, int, error) {
@@ -157,7 +158,7 @@ func (u *Implement) GetDetailById(id int) (*DetailRecipeDTO, error) {
 			r.image_url,
 			r.created_at,
 			r.updated_at,
-			IFNULL(GROUP_CONCAT(DISTINCT CONCAT('{"id":', i.id, ',"name":"', i.name, '"}') SEPARATOR ','), '[]') AS ingredients,
+			IFNULL(GROUP_CONCAT(DISTINCT CONCAT('{"id":', i.id, ',"name":"', i.name, '","quantity":"', ri.quantity, '"}') SEPARATOR ','), '[]') AS ingredients,
 			IFNULL(GROUP_CONCAT(DISTINCT CONCAT('{"id":', ir.id, ',"step":', ir.step, ',"content":"', ir.content, '"}') SEPARATOR ','), '[]') AS instructions
 		`).
 		Joins("LEFT JOIN recipe_ingredients ri ON r.id = ri.recipe_id").

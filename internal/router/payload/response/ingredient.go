@@ -10,8 +10,9 @@ type ListIngredientResponse struct {
 }
 
 type DetailIngredientResponse struct {
-	Id   int    `json:"id"`
-	Name string `json:"name"`
+	Id       int    `json:"id"`
+	Name     string `json:"name"`
+	Quantity string `json:"quantity,omitempty"`
 }
 
 func ToDetailIngredientResponse(ingredient *entity.Ingredient) *DetailIngredientResponse {
