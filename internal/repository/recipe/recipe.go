@@ -104,7 +104,7 @@ func (u *Implement) Update(recipe *entity.Recipe) error {
 }
 
 func (u *Implement) Delete(id int) error {
-	return u.db.Delete(&entity.User{Id: id}).Error
+	return u.db.Delete(&entity.Recipe{Id: id}).Error
 }
 
 func (u *Implement) GetDistinctCuisines(limit, offset int, search string) ([]string, int, error) {

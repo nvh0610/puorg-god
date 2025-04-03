@@ -24,7 +24,7 @@ func NewMysqlConnection() (*gorm.DB, error) {
 
 	if db, err = gorm.Open(mysql.New(mysql.Config{
 		DSN: dsn,
-	}), &gorm.Config{Logger: gormLogger.Default.LogMode(gormLogger.Info)}); err != nil {
+	}), &gorm.Config{Logger: gormLogger.Default.LogMode(gormLogger.Silent)}); err != nil {
 		return nil, err
 	}
 

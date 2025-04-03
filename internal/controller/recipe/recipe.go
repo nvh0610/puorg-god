@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/go-chi/chi/v5"
 	customStatus "god/internal/common/error"
+	"god/internal/controller/user"
 	"god/internal/entity"
 	"god/internal/repository"
 	"god/internal/router/payload/request"
@@ -36,6 +37,12 @@ func (u *RecipeController) CreateRecipe(w http.ResponseWriter, r *http.Request) 
 
 	if err := u.ValidateInstructions(req.Instructions); err != nil {
 		resp.Return(w, http.StatusBadRequest, customStatus.INVALID_PARAMS, err.Error())
+		return
+	}
+
+	_, role := utils.GetUserIdAndRoleFromContext(r)
+	if !user.IsValidAdminRole(role) {
+		resp.Return(w, http.StatusForbidden, customStatus.FORBIDDEN, nil)
 		return
 	}
 
@@ -78,6 +85,12 @@ func (u *RecipeController) UpdateRecipe(w http.ResponseWriter, r *http.Request) 
 
 	if err := u.ValidateInstructions(req.Instructions); err != nil {
 		resp.Return(w, http.StatusBadRequest, customStatus.INVALID_PARAMS, err.Error())
+		return
+	}
+
+	_, role := utils.GetUserIdAndRoleFromContext(r)
+	if !user.IsValidAdminRole(role) {
+		resp.Return(w, http.StatusForbidden, customStatus.FORBIDDEN, nil)
 		return
 	}
 
@@ -238,12 +251,12 @@ func (u *RecipeController) GetRecipeById(w http.ResponseWriter, r *http.Request)
 	idInt, _ := strconv.Atoi(id)
 	recipe, err := u.repo.Recipe().GetDetailById(idInt)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			resp.Return(w, http.StatusNotFound, customStatus.RECIPE_NOT_FOUND, nil)
-			return
-		}
-
 		resp.Return(w, http.StatusInternalServerError, customStatus.INTERNAL_SERVER, err.Error())
+		return
+	}
+
+	if recipe.ID == 0 {
+		resp.Return(w, http.StatusNotFound, customStatus.RECIPE_NOT_FOUND, nil)
 		return
 	}
 
@@ -253,6 +266,13 @@ func (u *RecipeController) GetRecipeById(w http.ResponseWriter, r *http.Request)
 func (u *RecipeController) DeleteRecipeById(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	idInt, _ := strconv.Atoi(id)
+
+	_, role := utils.GetUserIdAndRoleFromContext(r)
+	if !user.IsValidAdminRole(role) {
+		resp.Return(w, http.StatusForbidden, customStatus.FORBIDDEN, nil)
+		return
+	}
+
 	_, err := u.repo.Recipe().GetById(idInt)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
