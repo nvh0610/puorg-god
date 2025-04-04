@@ -8,7 +8,7 @@
 - Technologies:
     - Backend: Golang
     - Database: Mysql
-    - Farmework: go chi, gorm
+    - Framework: go chi, gorm
     - Deployment: github action deploy trên VPS
 ## Setup project chạy local sử dụng docker:
 Ở đây sử dụng makefile để quản lí các câu lệnh chạy project
