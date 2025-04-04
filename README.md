@@ -1,4 +1,15 @@
 # puorg-god
+- Đây là project xây dụng trang web về công thức nấu ăn đơn giản
+- Key Features:
+    - User:
+      - Login, Forgot password, Change password, Update user, Delete user
+    - Recipe:
+      - Create recipe, Update recipe, Delete recipe, Get detail recipe, Get list recipe
+- Technologies:
+    - Backend: Golang
+    - Database: Mysql
+    - Farmework: go chi, gorm
+    - Deployment: github action deploy trên VPS
 ## Setup project chạy local sử dụng docker:
 Ở đây sử dụng makefile để quản lí các câu lệnh chạy project
 1. Clone the project từ github về 
