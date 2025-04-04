@@ -464,9 +464,6 @@ Response:
     "code": 200000,
     "msg": "Success",
     "data": {
-    "code": 200000,
-    "msg": "Success",
-    "data": {
         "ingredients": [
             {
                 "id": 1,
@@ -497,7 +494,6 @@ Response:
         "limit": 10,
         "page": 1
     }
-}
 }
 ```
 
