@@ -58,7 +58,7 @@ func InitRouter() chi.Router {
 		r.With(mdw.JwtMiddleware).Post("/change-password", baseController.AuthCtrl.ChangePassword)
 	})
 
-	r.Route("/api/user", func(r chi.Router) {
+	r.Route("/api/users", func(r chi.Router) {
 		r.Use(mdw.JwtMiddleware)
 		r.Get("/{id}", baseController.UserCtrl.GetUserById)
 		r.Put("/{id}", baseController.UserCtrl.UpdateUser)
@@ -66,6 +66,21 @@ func InitRouter() chi.Router {
 		r.Get("/", baseController.UserCtrl.ListUser)
 		r.Post("/update-role", baseController.UserCtrl.UpdateRole)
 		r.Get("/me", baseController.UserCtrl.GetMe)
+	})
+
+	r.Route("/api/ingredients", func(r chi.Router) {
+		r.Use(mdw.JwtMiddleware)
+		r.Get("/", baseController.IngredientCtrl.ListIngredient)
+	})
+
+	r.Route("/api/recipes", func(r chi.Router) {
+		r.Use(mdw.JwtMiddleware)
+		r.Post("/", baseController.RecipeCtrl.CreateRecipe)
+		r.Get("/distinct-cuisines", baseController.RecipeCtrl.GetDistinctCuisines)
+		r.Get("/", baseController.RecipeCtrl.GetListRecipe)
+		r.Get("/{id}", baseController.RecipeCtrl.GetRecipeById)
+		r.Delete("/{id}", baseController.RecipeCtrl.DeleteRecipeById)
+		r.Put("/{id}", baseController.RecipeCtrl.UpdateRecipe)
 	})
 
 	return r

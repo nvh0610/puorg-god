@@ -12,11 +12,11 @@ import (
 
 func init() {
 	customError.InitErrMsg()
-}
-func main() {
 	if err := config.LoadPathEnv(".env"); err != nil {
 		logger.Error(err.Error())
 	}
+}
+func main() {
 	routersInit := router.InitRouter()
 
 	server := &http.Server{

@@ -3,7 +3,6 @@ package repository
 import (
 	"god/internal/repository/ingredient"
 	"god/internal/repository/instruction"
-	"god/internal/repository/instruction_image"
 	"god/internal/repository/recipe"
 	"god/internal/repository/recipe_ingredient"
 	"god/internal/repository/user"
@@ -17,7 +16,6 @@ type Registry interface {
 	Ingredient() ingredient.Repository
 	RecipeIngredient() recipe_ingredient.Repository
 	Instruction() instruction.Repository
-	InstructionImage() instruction_image.Repository
 	DoInTx(txFunc func(txRepo Registry) error) error
 }
 
@@ -28,7 +26,6 @@ type mysqlImplement struct {
 	ingredientRepo       ingredient.Repository
 	recipeIngredientRepo recipe_ingredient.Repository
 	instructionRepo      instruction.Repository
-	instructionImageRepo instruction_image.Repository
 }
 
 func (m *mysqlImplement) User() user.Repository {
@@ -51,10 +48,6 @@ func (m *mysqlImplement) Instruction() instruction.Repository {
 	return m.instructionRepo
 }
 
-func (m *mysqlImplement) InstructionImage() instruction_image.Repository {
-	return m.instructionImageRepo
-}
-
 func NewRegistryRepo(db *gorm.DB) Registry {
 	return &mysqlImplement{
 		db:                   db,
@@ -63,7 +56,6 @@ func NewRegistryRepo(db *gorm.DB) Registry {
 		ingredientRepo:       ingredient.NewIngredientRepository(db),
 		recipeIngredientRepo: recipe_ingredient.NewRecipeIngredientRepository(db),
 		instructionRepo:      instruction.NewInstructionRepository(db),
-		instructionImageRepo: instruction_image.NewInstructionImageRepository(db),
 	}
 }
 
@@ -76,7 +68,6 @@ func (m *mysqlImplement) DoInTx(txFunc func(txRepo Registry) error) error {
 		ingredientRepo:       ingredient.NewIngredientRepository(tx),
 		recipeIngredientRepo: recipe_ingredient.NewRecipeIngredientRepository(tx),
 		instructionRepo:      instruction.NewInstructionRepository(tx),
-		instructionImageRepo: instruction_image.NewInstructionImageRepository(tx),
 	}
 
 	err := txFunc(txRepo)

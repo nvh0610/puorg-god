@@ -7,5 +7,7 @@ type Repository interface {
 	Create(recipe *entity.Recipe) error
 	Update(recipe *entity.Recipe) error
 	Delete(id int) error
-	List(limit, offset int) ([]*entity.Recipe, int, error)
+	List(limit, offset int, searchCuisine, searchTitle string, searchIngredients []string) ([]*RecipeDTO, int, error)
+	GetDistinctCuisines(limit, offset int, search string) ([]string, int, error)
+	GetDetailById(id int) (*DetailRecipeDTO, error)
 }

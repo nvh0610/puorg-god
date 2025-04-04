@@ -7,5 +7,6 @@ type Repository interface {
 	Create(ingredient *entity.Ingredient) error
 	Update(ingredient *entity.Ingredient) error
 	Delete(id int) error
-	List(limit, offset int) ([]*entity.Ingredient, int, error)
+	List(limit, offset int, search string) ([]*entity.Ingredient, int, error)
+	GetOrCreate(ingredient *entity.Ingredient) (*entity.Ingredient, error)
 }

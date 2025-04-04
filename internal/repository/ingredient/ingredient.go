@@ -3,6 +3,7 @@ package ingredient
 import (
 	"god/internal/entity"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type Implement struct {
@@ -18,19 +19,38 @@ func (u *Implement) GetById(id int) (*entity.Ingredient, error) {
 	return ingredient, u.db.First(&ingredient, "id = ?", id).Error
 }
 
-func (u *Implement) List(limit, offset int) ([]*entity.Ingredient, int, error) {
+func (u *Implement) List(limit, offset int, search string) ([]*entity.Ingredient, int, error) {
 	var ingredients []*entity.Ingredient
 	var count int64
-	err := u.db.Limit(limit).Offset(offset).Find(&ingredients).Error
+
+	baseQuery := u.db.Model(&entity.Ingredient{})
+	if search != "" {
+		baseQuery = baseQuery.Where("name LIKE ?", "%"+search+"%")
+	}
+
+	if err := baseQuery.Count(&count).Error; err != nil {
+		return nil, 0, err
+	}
+
+	if err := baseQuery.Limit(limit).Offset(offset).Find(&ingredients).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return ingredients, int(count), nil
+}
+
+func (u *Implement) GetOrCreate(ingredient *entity.Ingredient) (*entity.Ingredient, error) {
+	err := u.db.Clauses(clause.OnConflict{DoNothing: true}).Create(ingredient).Error
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
-	if err = u.db.Model(&entity.Ingredient{}).Count(&count).Error; err != nil {
-		return nil, 0, err
+	existing := &entity.Ingredient{}
+	if err := u.db.Where("name = ?", ingredient.Name).First(existing).Error; err != nil {
+		return nil, err
 	}
 
-	return ingredients, int(count), err
+	return existing, nil
 }
 
 func (u *Implement) Create(recipe *entity.Ingredient) error {
