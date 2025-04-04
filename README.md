@@ -58,6 +58,7 @@ Response:
 ```
 
 ### 2. Api create user
+- Description: Create user với điều kiện username và email là duy nhất, không được trùng
 - Method: POST
 - URL: /api/auth/
 - Body:
@@ -79,8 +80,9 @@ Response:
 ```
 
 ### 3. Forgot password
+- Description: Api sẽ gửi một mã OTP về email bạn đăng kí tài khoản
 - Method: POST
-- URL: /api/auth/forgot-password
+- URL: /api/auth/forget-password
 - Body:
 ```json
 {
@@ -97,6 +99,7 @@ Response:
 ```
 
 ### 4. Verify OTP 
+- Description: Từ OTP được gửi về email sẽ confirm lại xem có chính xác hay không, đúng với email không
 - Method: POST
 - URL: /api/auth/verify-otp
 - Body:
@@ -116,6 +119,7 @@ Response:
 ```
 
 ### 5. Reset password
+- Description: Khi verify thành công thì nhập lại password mình muốn tạo lại -> thành công thì login lại với password mới
 - Method: POST
 - URL: /api/auth/reset-password
 - Body:
@@ -154,6 +158,7 @@ Response:
 ```
 
 ### 7. Update user
+- Description: Chỉ có user mới tự mình update lại được username
 - Method: PUT
 - URL: /api/user/{id}
 - Body:
@@ -171,6 +176,7 @@ Response:
 }
 ```
 ### 8. Delete user
+- Description: Chỉ có admin mới có quyền xóa user
 - Method: DELETE
 - URL: /api/user/{id}
 - Response:
@@ -183,6 +189,7 @@ Response:
 ```
 
 ### 9. Create recipe
+- Description: Phần instructions cần đảm bảo các bước đúng theo thứ tự, phần content FE có thể handle ô box để viết front chữ, thêm ảnh... tất cả đều lưu vào content
 - Method: POST
 - URL: /api/recipes/
 - Body:
@@ -217,7 +224,7 @@ Response:
     },
     {
       "step": 3,
-      "content": "Rán đậu"
+      "content": "Rán đậu https://example.com/bun-bo-hue.jpg đậu vàng như ảnh là được"
     }
   ]
 }
@@ -233,6 +240,7 @@ Response:
 ```
 
 ### 10. Get all recipes
+- Description: Hỗ trợ search theo title, cuisine, có support filter theo cuisine dựa vào api thứ 15 và filter số lượng nhiều dựa vào data api số 14
 - Method: GET
 - URL: /api/recipes/
 
@@ -241,7 +249,7 @@ Params:
 - limit: number
 - title: string
 - cuisine: string
-- ingredients: string //example: "Đậu, Bún"
+- ingredients: string //format example: "Đậu,Bún"
 
 Response:
 ```json
@@ -376,6 +384,7 @@ Response:
 ```
 
 ### 12. Delete recipe
+- Description: User có quyền xóa bài của chính mình, admin có quyền xóa tất cả các bài
 - Method: DELETE
 - URL: /api/recipes/{id}
 
@@ -389,6 +398,7 @@ Response:
 ```
 
 ### 13. Update recipe
+- Description: User có quyền update khi bài viết đó là mình viết, admin có quyền update tất cả bài viết
 - Method: PUT
 - URL: /api/recipes/{id}
 
@@ -439,6 +449,7 @@ Response:
 ```
 
 ### 14. Get all ingredients
+- Description: API này hỗ trợ filter cho get list recipe
 - Method: GET
 - URL: /api/ingredients/
 
@@ -490,7 +501,8 @@ Response:
 }
 ```
 
-### 14. Get all cuisines
+### 15. Get all cuisines
+- Description: API này hỗ trợ filter cho get list recipe
 - Method: GET
 - URL: /api/recipes/cuisines
 
@@ -515,5 +527,3 @@ Response:
   }
 }
 ```
-
-Cần xem lại phần search list của recipe
