@@ -249,15 +249,13 @@ Response:
     "code": 200000,
     "msg": "Success",
     "data": {
-    "code": 200000,
-    "msg": "Success",
-    "data": {
         "recipes": [
             {
                 "id": 2,
                 "title": "Bún Cá",
                 "image_url": "https://example.com/bun-bo-hue.jpg",
                 "cuisine": "japan",
+                "created_by": 1,
                 "created_at": "2025-04-03T23:08:45+07:00",
                 "ingredients": [
                     {
@@ -279,6 +277,7 @@ Response:
                 "title": "Bún Đậu",
                 "image_url": "https://example.com/bun-bo-hue.jpg",
                 "cuisine": "japan",
+                "created_by": 1,
                 "created_at": "2025-04-03T23:09:30+07:00",
                 "ingredients": [
                     {
@@ -300,6 +299,7 @@ Response:
                 "title": "Bún Đậu",
                 "image_url": "https://example.com/bun-bo-hue.jpg",
                 "cuisine": "japan",
+                "created_by": 1,
                 "created_at": "2025-04-03T23:13:35+07:00",
                 "ingredients": [
                     {
@@ -334,14 +334,12 @@ Response:
     "code": 200000,
     "msg": "Success",
     "data": {
-    "code": 200000,
-    "msg": "Success",
-    "data": {
         "id": 2,
         "title": "Bún Cá",
         "description": "Một món ăn ngon",
         "image_url": "https://example.com/bun-bo-hue.jpg",
         "cuisine": "japan",
+        "created_by": 1,
         "created_at": "2025-04-03T23:08:45+07:00",
         "updated_at": "2025-04-03T23:08:45+07:00",
         "ingredients": [
@@ -489,6 +487,32 @@ Response:
         "page": 1
     }
 }
+}
+```
+
+### 14. Get all cuisines
+- Method: GET
+- URL: /api/recipes/cuisines
+
+Params:
+- page: number
+- limit: number
+- cuisine: string
+
+Response:
+```json
+{
+  "code": 200000,
+  "msg": "Success",
+  "data": {
+    "cuisines": [
+      "nhat ban",
+      "viet nam"
+    ],
+    "total_page": 1,
+    "limit": 10,
+    "page": 1
+  }
 }
 ```
 

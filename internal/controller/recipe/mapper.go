@@ -6,11 +6,12 @@ import (
 	"god/pkg/helper"
 )
 
-func ToModelCreateEntity(req *request.CreateRecipeRequest) *entity.Recipe {
+func ToModelCreateEntity(req *request.CreateRecipeRequest, userId int) *entity.Recipe {
 	return &entity.Recipe{
 		Title:       req.Title,
 		Description: req.Description,
 		ImageUrl:    req.ImageURL,
+		CreatedBy:   userId,
 		Cuisine:     helper.ToLower(req.Cuisine),
 	}
 }

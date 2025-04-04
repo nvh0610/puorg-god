@@ -21,10 +21,11 @@ type RecipeResponse struct {
 	ImageUrl    string                      `json:"image_url"`
 	Cuisine     string                      `json:"cuisine"`
 	CreatedAt   time.Time                   `json:"created_at"`
+	CreatedBy   int                         `json:"created_by"`
 	Ingredients []*DetailIngredientResponse `json:"ingredients"`
 }
 
-func ToRecipeResponse(recipe []*recipe.RecipeWithIngredients) []*RecipeResponse {
+func ToRecipeResponse(recipe []*recipe.RecipeDTO) []*RecipeResponse {
 	var recipes []*RecipeResponse
 	for _, r := range recipe {
 		recipes = append(recipes, &RecipeResponse{
@@ -32,6 +33,7 @@ func ToRecipeResponse(recipe []*recipe.RecipeWithIngredients) []*RecipeResponse 
 			Title:       r.Title,
 			ImageUrl:    r.ImageURL,
 			Cuisine:     r.Cuisine,
+			CreatedBy:   r.CreatedBy,
 			CreatedAt:   r.CreateAt,
 			Ingredients: ToRecipeIngredientResponse(r.RecipeIngredientDTO),
 		})
@@ -57,6 +59,7 @@ type DetailRecipeResponse struct {
 	Description  string                       `json:"description"`
 	ImageUrl     string                       `json:"image_url"`
 	Cuisine      string                       `json:"cuisine"`
+	CreatedBy    int                          `json:"created_by"`
 	CreatedAt    time.Time                    `json:"created_at"`
 	UpdatedAt    time.Time                    `json:"updated_at"`
 	Ingredients  []*DetailIngredientResponse  `json:"ingredients"`
@@ -70,6 +73,7 @@ func ToDetailRecipeResponse(recipe *recipe.DetailRecipeDTO) *DetailRecipeRespons
 		Description:  recipe.Description,
 		ImageUrl:     recipe.ImageURL,
 		Cuisine:      recipe.Cuisine,
+		CreatedBy:    recipe.CreatedBy,
 		CreatedAt:    recipe.CreateAt,
 		UpdatedAt:    recipe.UpdateAt,
 		Ingredients:  ToRecipeIngredientResponse(recipe.RecipeIngredientDTO),

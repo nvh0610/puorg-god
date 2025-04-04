@@ -20,11 +20,12 @@ func (u *Implement) GetById(id int) (*entity.Recipe, error) {
 	return recipe, u.db.First(&recipe, "id = ?", id).Error
 }
 
-type RecipeWithIngredients struct {
+type RecipeDTO struct {
 	ID                  int                    `json:"id" gorm:"column:id"`
 	Title               string                 `json:"title" gorm:"column:title"`
 	Cuisine             string                 `json:"cuisine" gorm:"column:cuisine"`
 	ImageURL            string                 `json:"image_url" gorm:"column:image_url"`
+	CreatedBy           int                    `json:"created_by" gorm:"column:created_by"`
 	Ingredients         string                 `json:"ingredients" gorm:"column:ingredients"`
 	CreateAt            time.Time              `json:"created_at" gorm:"column:created_at"`
 	RecipeIngredientDTO []*RecipeIngredientDTO `json:"recipe_ingredients" gorm:"-"`
@@ -36,15 +37,40 @@ type RecipeIngredientDTO struct {
 	Quantity string `json:"quantity" gorm:"column:quantity"`
 }
 
-func (u *Implement) List(limit, offset int, searchCuisine, searchTitle string, searchIngredients []string) ([]*RecipeWithIngredients, int, error) {
-	var recipesRaw []*RecipeWithIngredients
+func (u *Implement) List(limit, offset int, searchCuisine, searchTitle string, searchIngredients []string) ([]*RecipeDTO, int, error) {
+	var recipesRaw []*RecipeDTO
 	var count int64
 
-	query := u.db.Table("recipes r").
+	applyFilters := func(db *gorm.DB) *gorm.DB {
+		if searchCuisine != "" {
+			db = db.Where("r.cuisine LIKE ?", "%"+searchCuisine+"%")
+		}
+		if searchTitle != "" {
+			db = db.Where("r.title LIKE ?", "%"+searchTitle+"%")
+		}
+		if len(searchIngredients) > 0 {
+			db = db.Where(`
+				EXISTS (
+					SELECT 1 FROM recipe_ingredients ri2
+					JOIN ingredients i2 ON ri2.ingredient_id = i2.id
+					WHERE ri2.recipe_id = r.id AND i2.name IN (?)
+				)
+			`, searchIngredients)
+		}
+		return db
+	}
+
+	countQuery := applyFilters(u.db.Table("recipes r"))
+	if err := countQuery.Count(&count).Error; err != nil {
+		return nil, 0, err
+	}
+
+	dataQuery := u.db.Table("recipes r").
 		Select(`
 			r.id AS id,
 			r.title,
 			r.cuisine,
+			r.created_by,
 			r.image_url,
 			r.created_at,
 			IFNULL(JSON_ARRAYAGG(
@@ -56,37 +82,28 @@ func (u *Implement) List(limit, offset int, searchCuisine, searchTitle string, s
 		`).
 		Joins("LEFT JOIN recipe_ingredients ri ON r.id = ri.recipe_id").
 		Joins("LEFT JOIN ingredients i ON ri.ingredient_id = i.id").
-		Group("r.id")
+		Group("r.id").
+		Limit(limit).
+		Offset(offset)
 
-	if searchCuisine != "" {
-		query = query.Where("r.cuisine LIKE ?", "%"+searchCuisine+"%")
-	}
-	if searchTitle != "" {
-		query = query.Where("r.title LIKE ?", "%"+searchTitle+"%")
-	}
-	if len(searchIngredients) > 0 {
-		query = query.Where("i.name IN (?)", searchIngredients)
-	}
+	dataQuery = applyFilters(dataQuery)
 
-	if err := query.Count(&count).Error; err != nil {
+	if err := dataQuery.Scan(&recipesRaw).Error; err != nil {
 		return nil, 0, err
 	}
 
-	if err := query.Limit(limit).Offset(offset).Scan(&recipesRaw).Error; err != nil {
-		return nil, 0, err
-	}
-
-	var recipes []*RecipeWithIngredients
+	var recipes []*RecipeDTO
 	for _, recipe := range recipesRaw {
 		var ingredients []*RecipeIngredientDTO
 		if err := json.Unmarshal([]byte(recipe.Ingredients), &ingredients); err != nil {
 			return nil, 0, err
 		}
-		recipes = append(recipes, &RecipeWithIngredients{
+		recipes = append(recipes, &RecipeDTO{
 			ID:                  recipe.ID,
 			Title:               recipe.Title,
 			Cuisine:             recipe.Cuisine,
 			ImageURL:            recipe.ImageURL,
+			CreatedBy:           recipe.CreatedBy,
 			CreateAt:            recipe.CreateAt,
 			RecipeIngredientDTO: ingredients,
 		})
@@ -133,6 +150,7 @@ type DetailRecipeDTO struct {
 	Description         string                  `json:"description" gorm:"column:description"`
 	Cuisine             string                  `json:"cuisine" gorm:"column:cuisine"`
 	ImageURL            string                  `json:"image_url" gorm:"column:image_url"`
+	CreatedBy           int                     `json:"created_by" gorm:"column:created_by"`
 	Ingredients         string                  `json:"ingredients" gorm:"column:ingredients"`
 	CreateAt            time.Time               `json:"created_at" gorm:"column:created_at"`
 	UpdateAt            time.Time               `json:"updated_at" gorm:"column:updated_at"`
@@ -155,6 +173,7 @@ func (u *Implement) GetDetailById(id int) (*DetailRecipeDTO, error) {
 			r.title,
 			r.description,
 			r.cuisine,
+			r.created_by,
 			r.image_url,
 			r.created_at,
 			r.updated_at,
@@ -186,6 +205,7 @@ func (u *Implement) GetDetailById(id int) (*DetailRecipeDTO, error) {
 		Description:         recipeRaw.Description,
 		Cuisine:             recipeRaw.Cuisine,
 		ImageURL:            recipeRaw.ImageURL,
+		CreatedBy:           recipeRaw.CreatedBy,
 		CreateAt:            recipeRaw.CreateAt,
 		UpdateAt:            recipeRaw.UpdateAt,
 		RecipeIngredientDTO: ingredients,

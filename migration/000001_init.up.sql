@@ -14,8 +14,10 @@ CREATE TABLE recipes ( -- Công thức
      description TEXT NOT NULL,
      image_url   VARCHAR(255), -- Ảnh minh họa
      cuisine     VARCHAR(100), -- Loại ẩm thực (Việt, Hàn, Âu, v.v.)
+     created_by  INT NOT NULL,
      created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-     updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+     updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE ingredients ( -- Nguyên liệu

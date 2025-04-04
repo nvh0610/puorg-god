@@ -71,7 +71,7 @@ func (u *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userExist, err := u.repo.User().CheckExistsByEmail(req.Username)
+	userExist, err := u.repo.User().CheckExistsByEmail(req.Email)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		resp.Return(w, http.StatusInternalServerError, customStatus.INTERNAL_SERVER, err.Error())
 		return
@@ -92,7 +92,7 @@ func (u *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
 	input := ToModelCreateEntity(req)
 	err = u.repo.User().Create(input)
 	if err != nil {
-		resp.Return(w, http.StatusInternalServerError, customStatus.CREATE_USER_FAILED, nil)
+		resp.Return(w, http.StatusInternalServerError, customStatus.CREATE_USER_FAILED, err.Error())
 		return
 	}
 

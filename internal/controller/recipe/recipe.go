@@ -40,14 +40,9 @@ func (u *RecipeController) CreateRecipe(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	_, role := utils.GetUserIdAndRoleFromContext(r)
-	if !user.IsValidAdminRole(role) {
-		resp.Return(w, http.StatusForbidden, customStatus.FORBIDDEN, nil)
-		return
-	}
-
+	userId, _ := utils.GetUserIdAndRoleFromContext(r)
 	err := u.repo.DoInTx(func(txRepo repository.Registry) error {
-		recipeEntity := ToModelCreateEntity(req)
+		recipeEntity := ToModelCreateEntity(req, userId)
 		err := txRepo.Recipe().Create(recipeEntity)
 		if err != nil {
 			return err
@@ -88,12 +83,6 @@ func (u *RecipeController) UpdateRecipe(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	_, role := utils.GetUserIdAndRoleFromContext(r)
-	if !user.IsValidAdminRole(role) {
-		resp.Return(w, http.StatusForbidden, customStatus.FORBIDDEN, nil)
-		return
-	}
-
 	recipe, err := u.repo.Recipe().GetById(idInt)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -102,6 +91,12 @@ func (u *RecipeController) UpdateRecipe(w http.ResponseWriter, r *http.Request) 
 		}
 
 		resp.Return(w, http.StatusInternalServerError, customStatus.INTERNAL_SERVER, err.Error())
+		return
+	}
+
+	userId, role := utils.GetUserIdAndRoleFromContext(r)
+	if !user.IsValidAdminRole(role) && userId != recipe.CreatedBy {
+		resp.Return(w, http.StatusForbidden, customStatus.FORBIDDEN, nil)
 		return
 	}
 
@@ -267,13 +262,7 @@ func (u *RecipeController) DeleteRecipeById(w http.ResponseWriter, r *http.Reque
 	id := chi.URLParam(r, "id")
 	idInt, _ := strconv.Atoi(id)
 
-	_, role := utils.GetUserIdAndRoleFromContext(r)
-	if !user.IsValidAdminRole(role) {
-		resp.Return(w, http.StatusForbidden, customStatus.FORBIDDEN, nil)
-		return
-	}
-
-	_, err := u.repo.Recipe().GetById(idInt)
+	recipe, err := u.repo.Recipe().GetById(idInt)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			resp.Return(w, http.StatusNotFound, customStatus.RECIPE_NOT_FOUND, nil)
@@ -281,6 +270,12 @@ func (u *RecipeController) DeleteRecipeById(w http.ResponseWriter, r *http.Reque
 		}
 
 		resp.Return(w, http.StatusInternalServerError, customStatus.INTERNAL_SERVER, err.Error())
+		return
+	}
+
+	userId, role := utils.GetUserIdAndRoleFromContext(r)
+	if !user.IsValidAdminRole(role) && userId != recipe.CreatedBy {
+		resp.Return(w, http.StatusForbidden, customStatus.FORBIDDEN, nil)
 		return
 	}
 
