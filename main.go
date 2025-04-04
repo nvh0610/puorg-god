@@ -20,7 +20,7 @@ func main() {
 	routersInit := router.InitRouter()
 
 	server := &http.Server{
-		Addr:           ":8000",
+		Addr:           ":8080",
 		Handler:        routersInit,
 		ReadTimeout:    30 * time.Second,
 		WriteTimeout:   30 * time.Second,
