@@ -240,7 +240,7 @@ Response:
 ```
 
 ### 10. Get all recipes
-- Description: Hỗ trợ search theo title, cuisine, có support filter theo cuisine dựa vào api thứ 15 và filter số lượng nhiều dựa vào data api số 14
+- Description: Hỗ trợ search theo title, cuisine, có support filter theo cuisine dựa vào api thứ 15 và filter số lượng nhiều ingredients dựa vào data api số 14
 - Method: GET
 - URL: /api/recipes/
 
