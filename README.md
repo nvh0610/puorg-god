@@ -534,3 +534,6 @@ Response:
   }
 }
 ```
+
+## Diagram schema database
+![img.png](img.png)
