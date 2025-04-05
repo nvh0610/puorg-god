@@ -171,7 +171,7 @@ Response:
 ### 7. Update user
 - Description: Chỉ có user mới tự mình update lại được username
 - Method: PUT
-- URL: /api/user/{id}
+- URL: /api/users/{id}
 - Body:
 ```json
 {
@@ -189,7 +189,7 @@ Response:
 ### 8. Delete user
 - Description: Chỉ có admin mới có quyền xóa user
 - Method: DELETE
-- URL: /api/user/{id}
+- URL: /api/users/{id}
 - Response:
 ```json
 {
